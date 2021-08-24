@@ -108,7 +108,7 @@ public:
 	void Die();
 	
 	virtual bool IsFirstPersonView() const;
-	virtual void GetAimLocationAndRotaion(FVector& AimLocation, FVector& AimRotation) const;
+	virtual void GetAimLocationAndRotation(FVector& AimLocation, FVector& AimRotation) const;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	virtual float PlayAnimMontage(UAnimMontage* AnimMontage, float InPlayRate = 1.0f,
 		FName StartSectionName = NAME_None) override;
@@ -135,8 +135,10 @@ protected:
 	void BeginIronsights();
 	void EndIronsights();
 	void SpawnDefaultInventory();
+	void DestroyInventory();
 	void UpdateHealthHUD();
 	void UpdateStaminaHUD();
+	void UpdateShieldHUD();
 	void SetRagdollPhysics();
 
 	UFUNCTION(Server, Reliable, WithValidation)

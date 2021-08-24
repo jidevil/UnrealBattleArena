@@ -13,5 +13,5 @@ class UNREALBATTLEARENA_API AArenaPlayerCharacter : public AArenaCharacter
 
 public:
 
-	virtual void GetAimLocationAndRotaion(FVector& AimLocation, FVector& AimRotation) const override;
+	virtual void GetAimLocationAndRotation(FVector& AimLocation, FVector& AimRotation) const override;
 };

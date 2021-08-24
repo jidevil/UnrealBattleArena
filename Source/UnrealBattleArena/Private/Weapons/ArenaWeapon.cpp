@@ -495,7 +495,7 @@ void AArenaWeapon::OnFire()
 	
 	if (ArenaCharacter->IsLocallyControlled())
 	{
-		ArenaCharacter->GetAimLocationAndRotaion(AimLocation, AimRotation);
+		ArenaCharacter->GetAimLocationAndRotation(AimLocation, AimRotation);
 		
 		if (GetLocalRole() < ROLE_Authority)
 		{

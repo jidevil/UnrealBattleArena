@@ -20,7 +20,9 @@ public:
 	
 	class AArenaWeapon* GetWeapon(int32 WeaponIndex) const;
 	class AArenaWeapon* GetWeapon(TSubclassOf<class AArenaWeapon> WeaponClass) const;
+	
 	void AddWeapon(class AArenaWeapon* Weapon);
+	void RemoveAllWeapons();
 
 protected:
 

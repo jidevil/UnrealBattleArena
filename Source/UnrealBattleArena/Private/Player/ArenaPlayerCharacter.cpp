@@ -7,7 +7,7 @@
 #include "UI/HUD/ArenaHUD.h"
 #include "UI/HUD/Widgets/ArenaPlayerWidget.h"
 
-void AArenaPlayerCharacter::GetAimLocationAndRotaion(FVector& AimLocation, FVector& AimRotation) const
+void AArenaPlayerCharacter::GetAimLocationAndRotation(FVector& AimLocation, FVector& AimRotation) const
 {
 	AimLocation = GetCamera()->GetComponentLocation();
 	AimRotation = GetCamera()->GetForwardVector();

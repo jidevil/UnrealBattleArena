@@ -30,6 +30,9 @@ protected:
 	class UProgressBar* StaminaProgressBar{ nullptr };
 
 	UPROPERTY(meta=(BindWidget))
+	class UProgressBar* ShieldProgressBar{ nullptr };
+
+	UPROPERTY(meta=(BindWidget))
 	class UTextBlock* CurrentShieldText{ nullptr };
 
 	UPROPERTY(meta=(BindWidget))

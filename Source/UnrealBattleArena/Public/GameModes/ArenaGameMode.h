@@ -3,12 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/GameMode.h"
+#include "GameFramework/GameModeBase.h"
 #include "Player/ArenaPlayerState.h"
 #include "ArenaGameMode.generated.h"
 
 UCLASS()
-class UNREALBATTLEARENA_API AArenaGameMode : public AGameMode
+class UNREALBATTLEARENA_API AArenaGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
 
@@ -19,9 +19,11 @@ public:
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 	virtual void InitGameState() override;
 
+	virtual void PlayerDied(AController* Controller);
+	virtual void RespawnPlayer(AController* Controller);
+
 	virtual bool CanDealDamage(AArenaPlayerState* DamageInstigator, AArenaPlayerState* DamagedPlayer) const;
 	virtual int32 ChooseTeam(AArenaPlayerState* PlayerState);
-
 	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
 
 protected:
@@ -30,6 +32,9 @@ protected:
 	virtual bool IsSpawnPointPreferred(class APlayerStart* PlayerStart, class AController* Controller) const;
 	
 protected:
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Arena GameModeBase")
+	float RespawnTime{ 1.0f };
 
 	int32 NumberOfTeams{ 0 };
 };

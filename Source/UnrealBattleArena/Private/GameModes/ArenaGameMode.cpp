@@ -10,6 +10,7 @@
 #include "Online/ArenaPlayerStart.h"
 #include "EngineUtils.h"
 #include "Online/ArenaSpectatorPawn.h"
+#include "Player/ArenaPlayerCharacter.h"
 
 AArenaGameMode::AArenaGameMode()
 {
@@ -17,7 +18,6 @@ AArenaGameMode::AArenaGameMode()
 	PlayerControllerClass = AArenaPlayerController::StaticClass();
 	PlayerStateClass = AArenaPlayerState::StaticClass();
 	SpectatorClass = AArenaSpectatorPawn::StaticClass();
-	MinRespawnDelay = 5.0f;
 }
 
 void AArenaGameMode::PostLogin(APlayerController* NewPlayer)
@@ -35,6 +35,56 @@ void AArenaGameMode::PostLogin(APlayerController* NewPlayer)
 void AArenaGameMode::InitGameState()
 {
 	Super::InitGameState();
+}
+
+void AArenaGameMode::PlayerDied(AController* Controller)
+{
+	if (!Controller)
+	{
+		return;
+	}
+	
+	const FTransform& SpawnTransform = Controller->GetPawn()->GetActorTransform();
+	AArenaSpectatorPawn* SpectatorPawn = GetWorld()->SpawnActorDeferred<AArenaSpectatorPawn>(SpectatorClass,
+		SpawnTransform, this, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+
+	if (SpectatorPawn)
+	{
+		Controller->UnPossess();
+		SpectatorPawn->FinishSpawning(SpawnTransform);
+		Controller->Possess(SpectatorPawn);
+	}
+
+	FTimerDelegate RespawnCallback;
+	RespawnCallback.BindUObject(this, &AArenaGameMode::RespawnPlayer, Controller);
+
+	FTimerHandle RespawnTimer;
+	GetWorldTimerManager().SetTimer(RespawnTimer, RespawnCallback, RespawnTime, false);
+}
+
+void AArenaGameMode::RespawnPlayer(AController* Controller)
+{
+	if (Controller->IsPlayerController())
+	{
+		const AActor* PlayerStart = FindPlayerStart(Controller);
+
+		FTransform SpawnTransform;
+		SpawnTransform.SetLocation(PlayerStart->GetActorLocation());
+		SpawnTransform.SetRotation(PlayerStart->GetActorRotation().Quaternion());
+
+		AArenaPlayerCharacter* PlayerCharacter = GetWorld()->SpawnActorDeferred<AArenaPlayerCharacter>(DefaultPawnClass,
+			SpawnTransform, this, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+
+		if (PlayerCharacter)
+		{
+			PlayerCharacter->FinishSpawning(SpawnTransform);
+			
+			APawn* SpectatorPawn = Controller->GetPawn();
+			Controller->UnPossess();
+			SpectatorPawn->Destroy();
+			Controller->Possess(PlayerCharacter);
+		}
+	}
 }
 
 bool AArenaGameMode::CanDealDamage(AArenaPlayerState* DamageInstigator, AArenaPlayerState* DamagedPlayer) const

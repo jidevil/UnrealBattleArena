@@ -5,7 +5,6 @@
 
 AArenaSpectatorPawn::AArenaSpectatorPawn()
 {
-	bReplicates = false;
 }
 
 void AArenaSpectatorPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

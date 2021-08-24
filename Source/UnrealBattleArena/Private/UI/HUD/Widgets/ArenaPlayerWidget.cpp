@@ -27,15 +27,22 @@ void UArenaPlayerWidget::SetHealth(float Health, float MaxHealth)
 
 void UArenaPlayerWidget::SetShield(float Shield, float MaxShield)
 {
+	if (ShieldProgressBar)
+	{
+		ShieldProgressBar->SetPercent(Shield);
+	}
+	
 	if (CurrentShieldText)
 	{
-		CurrentShieldText->SetText(FText::AsNumber(Shield));
+		const int32 CurrentShieldInt = static_cast<int32>(Shield * 100);
+		CurrentShieldText->SetText(FText::AsNumber(CurrentShieldInt));
 	}
 
 	if (MaxShieldText)
 	{
-		MaxShieldText->SetText(FText::AsNumber(MaxShield));
-	}
+		const int32 MaxShieldInt = static_cast<int32>(MaxShield * 100);
+		MaxShieldText->SetText(FText::AsNumber(MaxShieldInt));
+	}	
 }
 
 void UArenaPlayerWidget::SetStamina(float Stamina)

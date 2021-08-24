@@ -14,16 +14,10 @@ class UNREALBATTLEARENA_API AArenaPlayerController : public APlayerController
 public:
 
 	FORCEINLINE class UArenaHUD* GetPlayerHUD() const { return PlayerHUD; }
-	virtual void PawnPendingDestroy(APawn* InPawn) override;
 
 protected:
 
 	virtual void BeginPlay() override;
-	virtual void SetupInputComponent() override;
-	virtual void UnFreeze() override;
-
-	UFUNCTION(Client, Reliable)
-	void ClientSetSpectatorCamera(FVector CameraLocation, FRotator CameraRotation);
 	
 protected:
 

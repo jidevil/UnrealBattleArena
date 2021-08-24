@@ -410,11 +410,13 @@ void AArenaCharacter::BeginPlay()
 	{
 		CurrentHealth = Attributes.MaxHealth;
 		CurrentStamina = Attributes.MaxStamina;
+		CurrentShield = Attributes.MaxShield;
 	}
 
 	SpawnDefaultInventory();
 	UpdateHealthHUD();
 	UpdateStaminaHUD();
+	UpdateShieldHUD();
 }
 
 void AArenaCharacter::Tick(float DeltaSeconds)
@@ -455,16 +457,29 @@ float AArenaCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Damage
 {
 	if (GetLocalRole() == ROLE_Authority)
 	{
-		CurrentHealth -= DamageAmount;
-		CurrentHealth = FMath::Clamp(CurrentHealth, 0.0f, Attributes.MaxHealth);
-
-		if (CurrentHealth <= 0.0f)
+		float RemainingDamage = DamageAmount;
+		if (CurrentShield > 0.0f)
 		{
-			HitInfo.bKilled = true;
-			HitInfo.Damage = DamageAmount;
-			HitInfo.DamageCauser = DamageCauser;
+			RemainingDamage = DamageAmount - CurrentShield;
+			CurrentShield = CurrentShield - DamageAmount;
 
-			Die();
+			RemainingDamage = (RemainingDamage < 0.0f) ? 0.0f : RemainingDamage;
+			CurrentShield = FMath::Clamp(CurrentShield, 0.0f, Attributes.MaxShield);
+		}
+
+		if (RemainingDamage > 0.0f)
+		{
+			CurrentHealth -= RemainingDamage;
+			CurrentHealth = FMath::Clamp(CurrentHealth, 0.0f, Attributes.MaxHealth);
+
+			if (CurrentHealth <= 0.0f)
+			{
+				HitInfo.bKilled = true;
+				HitInfo.Damage = DamageAmount;
+				HitInfo.DamageCauser = DamageCauser;
+
+				Die();
+			}
 		}
 	}
 
@@ -571,6 +586,15 @@ void AArenaCharacter::SpawnDefaultInventory()
 	}
 }
 
+void AArenaCharacter::DestroyInventory()
+{
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		Inventory->RemoveAllWeapons();
+		CurrentWeaponIndex = -1;
+	}
+}
+
 void AArenaCharacter::UpdateHealthHUD()
 {	
 	if (PlayerWidget)
@@ -584,6 +608,14 @@ void AArenaCharacter::UpdateStaminaHUD()
 	if (PlayerWidget)
 	{
 		PlayerWidget->SetStamina(CurrentStamina);
+	}
+}
+
+void AArenaCharacter::UpdateShieldHUD()
+{
+	if (PlayerWidget)
+	{
+		PlayerWidget->SetShield(CurrentShield, Attributes.MaxShield);
 	}
 }
 
@@ -686,8 +718,17 @@ void AArenaCharacter::Die()
 		ToggleView();
 	}
 
-	DetachFromControllerPendingDestroy();
+	DestroyInventory();
 	StopAllAnimMontages();
+
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		AArenaGameMode* GameMode = Cast<AArenaGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+		if (GameMode)
+		{
+			GameMode->PlayerDied(GetController());		
+		}
+	}
 
 	GetMesh()->SetCollisionProfileName("Ragdoll");
 	SetActorEnableCollision(true);
@@ -711,7 +752,7 @@ void AArenaCharacter::Die()
 	GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Ignore);
 }
 
-void AArenaCharacter::GetAimLocationAndRotaion(FVector& AimLocation, FVector& AimRotation) const
+void AArenaCharacter::GetAimLocationAndRotation(FVector& AimLocation, FVector& AimRotation) const
 {	
 	FRotator EyeRotation;
 	GetActorEyesViewPoint(AimLocation, EyeRotation);
@@ -798,6 +839,10 @@ void AArenaCharacter::OnRep_CurrentStamina()
 
 void AArenaCharacter::OnRep_CurrentShield()
 {
+	if (IsLocallyControlled())
+	{
+		UpdateShieldHUD();
+	}
 }
 
 void AArenaCharacter::OnRep_CurrentSpeedMultiplier()

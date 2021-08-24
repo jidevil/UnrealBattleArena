@@ -67,6 +67,16 @@ void UArenaInventory::AddWeapon(AArenaWeapon* Weapon)
 	}
 }
 
+void UArenaInventory::RemoveAllWeapons()
+{
+	for (AArenaWeapon* Weapon : Weapons)
+	{
+		Weapon->Destroy();
+	}
+
+	Weapons.Empty();
+}
+
 void UArenaInventory::BeginPlay()
 {
 	Super::BeginPlay();
