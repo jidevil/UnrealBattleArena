@@ -15,19 +15,10 @@ struct FCharacterAttributes
 	float MaxHealth{ 1.0f };
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	float MaxStamina{ 1.0f };
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float MaxShield{ 1.0f };
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float MaxSpeedMultiplier{ 4.0f };
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	float StaminaDepletionRate{ 0.0f };
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	float StaminRegenRate{ 0.0f };
 };
 
 USTRUCT(BlueprintType)
@@ -75,7 +66,6 @@ public:
 	class UArenaAbilitySystem* GetAbilitySystem() const;
 	
 	float GetCurrentHealth() const;
-	float GetCurrentStamina() const;
 	float GetCurrentShield() const;
 	float GetCurrentSpeedMultiplier() const;
 	
@@ -90,21 +80,17 @@ public:
 	void SetAttributes(const FCharacterAttributes& InAttributes);
 	void SetSprinting(bool bInSprinting);
 	void SetMaxHealth(float InMaxHealth);
-	void SetMaxStamina(float InMaxStamina);
 	void SetHealth(float InHealth);
-	void SetStamina(float InStamina);
 	void SetSheild(float InShield);
 	void SetSpeedMultiplier(float InSpeedMultiplier);
 
 	void AddHealth(float InHealth);
-	void AddStamina(float InStamina);
 	void AddShield(float InShield);
 	void AddSpeedMultiplier(float InSpeedMultiplier);
 
 	void ToggleView();
 	void SetCameraFOV(float FOV);
 	void UpdateSpeed();
-	void UpdateStamina(bool bDeplete, float DeltaSeconds);
 	void Die();
 	
 	virtual bool IsFirstPersonView() const;
@@ -137,7 +123,6 @@ protected:
 	void SpawnDefaultInventory();
 	void DestroyInventory();
 	void UpdateHealthHUD();
-	void UpdateStaminaHUD();
 	void UpdateShieldHUD();
 	void SetRagdollPhysics();
 
@@ -150,9 +135,6 @@ protected:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerUpdateSpeed();
 
-	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerUpdateStamina(bool bDeplete);
-
 	UFUNCTION(Client, Reliable)
 	void ClientSetSprinting(bool bInSprinting);
 
@@ -163,19 +145,16 @@ protected:
 	void MulticastLookAtRotation(FRotator InLookRotation);
 
 	UFUNCTION()
-	void OnRep_CurrentHealth();
+	virtual void OnRep_CurrentHealth();
 
 	UFUNCTION()
-	void OnRep_CurrentStamina();
+	virtual void OnRep_CurrentShield();
 
 	UFUNCTION()
-	void OnRep_CurrentShield();
+	virtual void OnRep_CurrentSpeedMultiplier();
 
 	UFUNCTION()
-	void OnRep_CurrentSpeedMultiplier();
-
-	UFUNCTION()
-	void OnRep_HitInfo();
+	virtual void OnRep_HitInfo();
 
 protected:
 
@@ -209,9 +188,6 @@ protected:
 	UPROPERTY(ReplicatedUsing=OnRep_CurrentHealth)
 	float CurrentHealth{ 0.0f };
 
-	UPROPERTY(ReplicatedUsing=OnRep_CurrentStamina)
-	float CurrentStamina{ 0.0f };
-
 	UPROPERTY(ReplicatedUsing=OnRep_CurrentShield)
 	float CurrentShield{ 0.0f };
 
@@ -234,7 +210,5 @@ protected:
 	bool bChangeFOV{ false };
 	float TargetFOV{ 0.0f };
 	bool bFirstPersonView{ false };
-	bool bDepleteStamina{ false };
-	bool bRegenStamina{ false };
 	bool bIsDying{ false };
 };

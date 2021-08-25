@@ -29,7 +29,7 @@ void UArenaPlayerWidget::SetShield(float Shield, float MaxShield)
 {
 	if (ShieldProgressBar)
 	{
-		ShieldProgressBar->SetPercent(Shield);
+		ShieldProgressBar->SetPercent(Shield);	
 	}
 	
 	if (CurrentShieldText)
@@ -43,14 +43,6 @@ void UArenaPlayerWidget::SetShield(float Shield, float MaxShield)
 		const int32 MaxShieldInt = static_cast<int32>(MaxShield * 100);
 		MaxShieldText->SetText(FText::AsNumber(MaxShieldInt));
 	}	
-}
-
-void UArenaPlayerWidget::SetStamina(float Stamina)
-{
-	if (StaminaProgressBar)
-	{
-		StaminaProgressBar->SetPercent(Stamina);
-	}
 }
 
 void UArenaPlayerWidget::NativeConstruct()

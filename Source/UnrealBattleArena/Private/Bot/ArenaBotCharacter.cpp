@@ -3,12 +3,17 @@
 
 #include "Bot/ArenaBotCharacter.h"
 #include "Bot/ArenaBotController.h"
+#include "Components/WidgetComponent.h"
 #include "Perception/AIPerceptionComponent.h"
+#include "UI/Widgets/ArenaFloatingHealth.h"
 
 AArenaBotCharacter::AArenaBotCharacter()
 {
 	AIControllerClass = AArenaBotController::StaticClass();
 	AIPerception = CreateDefaultSubobject<UAIPerceptionComponent>("AIPerception");
+	
+	FloatingHealth = CreateDefaultSubobject<UWidgetComponent>("FloatingHealth");
+	FloatingHealth->SetupAttachment(RootComponent);
 }
 
 bool AArenaBotCharacter::IsFirstPersonView() const
@@ -26,4 +31,27 @@ void AArenaBotCharacter::FaceRotation(FRotator NewControlRotation, float DeltaTi
 void AArenaBotCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	HealthWidget = Cast<UArenaFloatingHealth>(FloatingHealth->GetWidget());
+
+	CurrentShield = 0.0f;
+	if (HealthWidget)
+	{
+		HealthWidget->SetShield(CurrentShield);
+	}
+}
+
+void AArenaBotCharacter::OnRep_CurrentHealth()
+{
+	if (HealthWidget)
+	{
+		HealthWidget->SetHealth(CurrentHealth);
+	}
+}
+
+void AArenaBotCharacter::OnRep_CurrentShield()
+{
+	if (HealthWidget)
+	{
+		HealthWidget->SetShield(CurrentShield);
+	}
 }

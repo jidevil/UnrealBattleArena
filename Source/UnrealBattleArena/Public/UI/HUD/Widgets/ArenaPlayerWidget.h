@@ -15,7 +15,6 @@ public:
 
 	void SetHealth(float Health, float MaxHealth);
 	void SetShield(float Shield, float MaxShield);
-	void SetStamina(float Stamina);
 
 protected:
 
@@ -25,9 +24,6 @@ protected:
 
 	UPROPERTY(meta=(BindWidget))
 	class UProgressBar* HealthProgressBar{ nullptr };
-
-	UPROPERTY(meta=(BindWidget))
-	class UProgressBar* StaminaProgressBar{ nullptr };
 
 	UPROPERTY(meta=(BindWidget))
 	class UProgressBar* ShieldProgressBar{ nullptr };

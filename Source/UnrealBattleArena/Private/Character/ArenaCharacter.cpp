@@ -92,11 +92,6 @@ float AArenaCharacter::GetCurrentHealth() const
 	return CurrentHealth;
 }
 
-float AArenaCharacter::GetCurrentStamina() const
-{
-	return CurrentStamina;
-}
-
 float AArenaCharacter::GetCurrentShield() const
 {
 	return CurrentShield;
@@ -233,15 +228,6 @@ void AArenaCharacter::SetSprinting(bool bInSprinting)
 
 	bSprinting = bInSprinting;
 	UpdateSpeed();
-
-	if (bSprinting)
-	{
-		ServerUpdateStamina(true);
-	}
-	else
-	{
-		ServerUpdateStamina(false);
-	}
 }
 
 void AArenaCharacter::SetMaxHealth(float MaxHealth)
@@ -252,27 +238,11 @@ void AArenaCharacter::SetMaxHealth(float MaxHealth)
 	}
 }
 
-void AArenaCharacter::SetMaxStamina(float InMaxStamina)
-{
-	if (GetLocalRole() == ROLE_Authority)
-	{
-		Attributes.MaxStamina = InMaxStamina;
-	}
-}
-
 void AArenaCharacter::SetHealth(float InHealth)
 {
 	if (GetLocalRole() == ROLE_Authority)
 	{
 		CurrentHealth = FMath::Clamp(InHealth, 0.0f, Attributes.MaxHealth);
-	}
-}
-
-void AArenaCharacter::SetStamina(float InStamina)
-{
-	if (GetLocalRole() == ROLE_Authority)
-	{
-		CurrentStamina = FMath::Clamp(InStamina, 0.0f, Attributes.MaxStamina);
 	}
 }
 
@@ -299,15 +269,6 @@ void AArenaCharacter::AddHealth(float InHealth)
 	{
 		CurrentHealth += InHealth;
 		CurrentHealth = FMath::Clamp(CurrentHealth, 0.0f, Attributes.MaxHealth);
-	}
-}
-
-void AArenaCharacter::AddStamina(float InStamina)
-{
-	if (GetLocalRole() == ROLE_Authority)
-	{
-		CurrentStamina += InStamina;
-		CurrentStamina = FMath::Clamp(CurrentStamina, 0.0f, Attributes.MaxStamina);
 	}
 }
 
@@ -409,13 +370,11 @@ void AArenaCharacter::BeginPlay()
 	if (GetLocalRole() == ROLE_Authority)
 	{
 		CurrentHealth = Attributes.MaxHealth;
-		CurrentStamina = Attributes.MaxStamina;
 		CurrentShield = Attributes.MaxShield;
 	}
 
 	SpawnDefaultInventory();
 	UpdateHealthHUD();
-	UpdateStaminaHUD();
 	UpdateShieldHUD();
 }
 
@@ -426,16 +385,6 @@ void AArenaCharacter::Tick(float DeltaSeconds)
 	if (GetLocalRole() == ROLE_Authority)
 	{
 		MulticastLookAtRotation(GetControlRotation());
-
-		if (bDepleteStamina)
-		{
-			UpdateStamina(true, DeltaSeconds);
-		}
-
-		if (bRegenStamina)
-		{
-			UpdateStamina(false, DeltaSeconds);
-		}
 	}
 }
 
@@ -445,7 +394,6 @@ void AArenaCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 	
 	DOREPLIFETIME(AArenaCharacter, CurrentWeaponIndex);
 	DOREPLIFETIME(AArenaCharacter, CurrentHealth);
-	DOREPLIFETIME(AArenaCharacter, CurrentStamina);
 	DOREPLIFETIME(AArenaCharacter, CurrentShield);
 	DOREPLIFETIME(AArenaCharacter, CurrentSpeedMultiplier);
 	DOREPLIFETIME(AArenaCharacter, bSprinting);
@@ -481,6 +429,9 @@ float AArenaCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Damage
 				Die();
 			}
 		}
+
+		UpdateHealthHUD();
+		UpdateShieldHUD();
 	}
 
 	return DamageAmount;
@@ -603,14 +554,6 @@ void AArenaCharacter::UpdateHealthHUD()
 	}
 }
 
-void AArenaCharacter::UpdateStaminaHUD()
-{	
-	if (PlayerWidget)
-	{
-		PlayerWidget->SetStamina(CurrentStamina);
-	}
-}
-
 void AArenaCharacter::UpdateShieldHUD()
 {
 	if (PlayerWidget)
@@ -672,36 +615,6 @@ void AArenaCharacter::UpdateSpeed()
 	}
 }
 
-void AArenaCharacter::UpdateStamina(bool bDeplete, float DeltaSeconds)
-{
-	if (bDeplete)
-	{
-		CurrentStamina = FMath::FInterpConstantTo(CurrentStamina, 0.0f, DeltaSeconds,
-			Attributes.StaminaDepletionRate);
-
-		if (CurrentStamina <= 0.0f)
-		{
-			CurrentStamina = 0.0f;
-			bSprinting = false;
-			bDepleteStamina = false;
-			bRegenStamina = true;
-
-			ClientSetSprinting(false);
-		}
-	}
-	else
-	{
-		CurrentStamina = FMath::FInterpConstantTo(CurrentStamina, Attributes.MaxStamina, DeltaSeconds,
-			Attributes.StaminRegenRate);
-
-		if (CurrentStamina >= Attributes.MaxStamina)
-		{
-			CurrentStamina = Attributes.MaxStamina;
-			bRegenStamina = false;
-		}
-	}
-}
-
 void AArenaCharacter::Die()
 {
 	if (bIsDying)
@@ -721,7 +634,7 @@ void AArenaCharacter::Die()
 	DestroyInventory();
 	StopAllAnimMontages();
 
-	if (GetLocalRole() == ROLE_Authority)
+	if (GetLocalRole() == ROLE_Authority && IsPlayerControlled())
 	{
 		AArenaGameMode* GameMode = Cast<AArenaGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
 		if (GameMode)
@@ -805,17 +718,6 @@ void AArenaCharacter::ClientSetSprinting_Implementation(bool bInSprinting)
 	SetSprinting(bInSprinting);
 }
 
-void AArenaCharacter::ServerUpdateStamina_Implementation(bool bDeplete)
-{
-	bDepleteStamina = bDeplete;
-	bRegenStamina = !bDeplete;
-}
-
-bool AArenaCharacter::ServerUpdateStamina_Validate(bool bDeplete)
-{
-	return true;
-}
-
 void AArenaCharacter::ClientToggleView_Implementation()
 {
 	ToggleView();
@@ -826,14 +728,6 @@ void AArenaCharacter::OnRep_CurrentHealth()
 	if (IsLocallyControlled())
 	{
 		UpdateHealthHUD();
-	}
-}
-
-void AArenaCharacter::OnRep_CurrentStamina()
-{
-	if (IsLocallyControlled())
-	{
-		UpdateStaminaHUD();
 	}
 }
 

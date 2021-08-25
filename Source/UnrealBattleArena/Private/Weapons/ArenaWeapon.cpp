@@ -441,7 +441,9 @@ void AArenaWeapon::Fire(const FVector& AimLocation, const FVector& AimRotation)
 void AArenaWeapon::OnEquip()
 {
 	bEquipped = true;
+	
 	AttachToPlayer();
+	UpdateAmmoHUD();
 }
 
 void AArenaWeapon::OnEquipFinished()

@@ -59,7 +59,7 @@ void AArenaGameMode::PlayerDied(AController* Controller)
 	RespawnCallback.BindUObject(this, &AArenaGameMode::RespawnPlayer, Controller);
 
 	FTimerHandle RespawnTimer;
-	GetWorldTimerManager().SetTimer(RespawnTimer, RespawnCallback, RespawnTime, false);
+	GetWorldTimerManager().SetTimer(RespawnTimer, RespawnCallback, GetRespawnTime(Controller), false);
 }
 
 void AArenaGameMode::RespawnPlayer(AController* Controller)
@@ -182,5 +182,10 @@ bool AArenaGameMode::IsSpawnPointPreferred(APlayerStart* PlayerStart, AControlle
 	}
 
 	return true;
+}
+
+float AArenaGameMode::GetRespawnTime(AController* Controller)
+{
+	return DefaultRespawnTime;
 }
 

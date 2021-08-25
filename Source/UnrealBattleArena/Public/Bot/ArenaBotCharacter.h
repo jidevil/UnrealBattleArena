@@ -24,8 +24,17 @@ protected:
 
 	virtual void BeginPlay() override;
 
+	virtual void OnRep_CurrentHealth() override;
+	virtual void OnRep_CurrentShield() override;
+
 protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Arena Bot Character")
 	class UAIPerceptionComponent* AIPerception{ nullptr };
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Arena Bot Character")
+	class UWidgetComponent* FloatingHealth{ nullptr };
+
+	UPROPERTY(Transient)
+	class UArenaFloatingHealth* HealthWidget{ nullptr };
 };

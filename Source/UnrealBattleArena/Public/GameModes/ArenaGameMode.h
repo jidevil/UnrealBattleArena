@@ -30,11 +30,13 @@ protected:
 
 	virtual bool IsSpawnPointAllowed(class APlayerStart* PlayerStart, class AController* Controller) const;
 	virtual bool IsSpawnPointPreferred(class APlayerStart* PlayerStart, class AController* Controller) const;
+	virtual float GetRespawnTime(AController* Controller);
 	
 protected:
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Arena GameModeBase")
-	float RespawnTime{ 1.0f };
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Arena GameMode")
+	float DefaultRespawnTime{ 1.0f };
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Arena GameMode")
 	int32 NumberOfTeams{ 0 };
 };
