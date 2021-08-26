@@ -17,6 +17,11 @@ void UArenaMenuItem::NativeConstruct()
 {
 	Super::NativeConstruct();
 
+	if (MenuText)
+	{
+		MenuText->SetText(MenuTitle);
+	}
+
 	if (MenuButton)
 	{
 		MenuButton->OnClicked.AddDynamic(this, &UArenaMenuItem::OnMenuItemClicked);

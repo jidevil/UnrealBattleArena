@@ -15,6 +15,7 @@ class UNREALBATTLEARENA_API UArenaMenuItem : public UUserWidget
 
 public:
 
+	UFUNCTION(BlueprintCallable)
 	void SetText(const FText& Text);
 
 protected:
@@ -30,8 +31,11 @@ public:
 
 protected:
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Arena Menu Item")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Arena Menu Item")
 	FName MenuType;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Arena Menu Item")
+	FText MenuTitle;
 
 	UPROPERTY(meta=(BindWidget))
 	class UTextBlock* MenuText{ nullptr };

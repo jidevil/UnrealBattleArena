@@ -7,7 +7,7 @@
 #include "UI/ArenaDialog.h"
 #include "ArenaUIManager.generated.h"
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS(BlueprintType, Blueprintable, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class UNREALBATTLEARENA_API UArenaUIManager : public UActorComponent
 {
 	GENERATED_BODY()

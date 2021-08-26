@@ -6,12 +6,15 @@
 #include "Weapons/ArenaWeapon.h"
 #include "UI/HUD/ArenaHUD.h"
 #include "Blueprint/UserWidget.h"
+#include "GameModes/ArenaGameMode.h"
+#include "Kismet/GameplayStatics.h"
 
 void AArenaPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	if (IsLocalController())
+
+	AArenaGameMode* GameMode = Cast<AArenaGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+	if (GameMode && IsLocalController())
 	{
 		PlayerHUD = Cast<UArenaHUD>(CreateWidget(this, PlayerHUDClass));
 		if (PlayerHUD)
