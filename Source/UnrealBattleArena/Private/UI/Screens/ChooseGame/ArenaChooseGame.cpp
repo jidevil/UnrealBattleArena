@@ -2,8 +2,11 @@
 
 
 #include "UI/Screens/ChooseGame/ArenaChooseGame.h"
-#include "UI/Screens/ChooseGame/Widgets/ArenaGameItem.h"
+#include "UI/Screens/ChooseGame/Widgets/ArenaChooseGameItem.h"
+#include "UI/Screens/CreateGame/ArenaCreateGame.h"
+#include "UI/ArenaUIManager.h"
 #include "Online/ArenaSessionSubsystem.h"
+#include "Misc/ArenaFunctionLibrary.h"
 #include "OnlineSessionSettings.h"
 #include "Components/Button.h"
 #include "Components/VerticalBox.h"
@@ -23,40 +26,54 @@ void UArenaChooseGame::NativeConstruct()
 		RefreshButton->OnClicked.AddDynamic(this, &UArenaChooseGame::OnRefreshButtonClicked);
 	}
 
-	UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(GetWorld());
-	if (GameInstance)
+	if (BackButton)
 	{
-		UArenaSessionSubsystem* SessionSubsystem = GameInstance->GetSubsystem<UArenaSessionSubsystem>();
-		if (SessionSubsystem)
-		{
-			SessionSubsystem->FindSessionCompleteDelegate.AddUObject(this, &UArenaChooseGame::OnFindSessionsCompleted);
-		}
+		BackButton->OnClicked.AddDynamic(this, &UArenaChooseGame::OnBackButtonClicked);
+	}
+}
+
+void UArenaChooseGame::NativeDestruct()
+{
+	Super::NativeDestruct();
+
+	if (CreateButton)
+	{
+		CreateButton->OnClicked.RemoveDynamic(this, &UArenaChooseGame::OnCreateButtonClicked);
+	}
+
+	if (RefreshButton)
+	{
+		RefreshButton->OnClicked.RemoveDynamic(this, &UArenaChooseGame::OnRefreshButtonClicked);
+	}
+
+	if (BackButton)
+	{
+		BackButton->OnClicked.RemoveDynamic(this, &UArenaChooseGame::OnBackButtonClicked);
 	}
 }
 
 void UArenaChooseGame::OnFindSessionsCompleted(const TArray<FOnlineSessionSearchResult>& SessionResults,
-	bool bSuccessful)
+                                               bool bSuccessful)
 {
+	UArenaSessionSubsystem* SessionSubsystem = UArenaFunctionLibrary::GetSessionSubsystem(GetWorld());
+	if (SessionSubsystem)
+	{
+		SessionSubsystem->FindSessionCompleteDelegate.RemoveAll(this);
+	}
+
 	if (GameItemListBox)
 	{
 		GameItemListBox->ClearChildren();
-	}
-	
-	if (bSuccessful)
-	{
+
 		for (const FOnlineSessionSearchResult& SearchResult : SessionResults)
 		{
 			if (SearchResult.IsValid())
 			{
-				UArenaGameItem* GameItem = Cast<UArenaGameItem>(CreateWidget(this,
-					GameItemClass));
+				UArenaChooseGameItem* GameItem = CreateWidget<UArenaChooseGameItem>(
+					GetOwningPlayer(), GameItemClass);
 
-				if (GameItem)
-				{
-					GameItem->SetSessionId(SearchResult.GetSessionIdStr());
-					GameItem->SetPadding(FMargin(0.0f, 10.0f));
-					GameItemListBox->AddChild(GameItem);
-				}
+				GameItem->SetSessionSearchResult(SearchResult);
+				GameItemListBox->AddChild(GameItem);
 			}
 		}
 	}
@@ -64,17 +81,28 @@ void UArenaChooseGame::OnFindSessionsCompleted(const TArray<FOnlineSessionSearch
 
 void UArenaChooseGame::OnCreateButtonClicked()
 {
+	UArenaUIManager* UIManager = UArenaFunctionLibrary::GetUIManager(GetWorld());
+	if (UIManager)
+	{
+		UIManager->PushScreen(CreateGameClass);
+	}
 }
 
 void UArenaChooseGame::OnRefreshButtonClicked()
 {
-	UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(GetWorld());
-	if (GameInstance)
+	UArenaSessionSubsystem* SessionSubsystem = UArenaFunctionLibrary::GetSessionSubsystem(GetWorld());
+	if (SessionSubsystem)
 	{
-		UArenaSessionSubsystem* SessionSubsystem = GameInstance->GetSubsystem<UArenaSessionSubsystem>();
-		if (SessionSubsystem)
-		{
-			SessionSubsystem->FindSessions(20, false);
-		}
+		SessionSubsystem->FindSessionCompleteDelegate.AddUObject(this, &UArenaChooseGame::OnFindSessionsCompleted);
+		SessionSubsystem->FindSessions(100, false);
+	}
+}
+
+void UArenaChooseGame::OnBackButtonClicked()
+{
+	UArenaUIManager* UIManager = UArenaFunctionLibrary::GetUIManager(GetWorld());
+	if (UIManager)
+	{
+		UIManager->PopScreen();
 	}
 }

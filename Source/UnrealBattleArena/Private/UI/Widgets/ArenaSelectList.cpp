@@ -30,6 +30,21 @@ void UArenaSelectList::NativeConstruct()
 	}
 }
 
+void UArenaSelectList::NativeDestruct()
+{
+	Super::NativeDestruct();
+
+	if (PreviousButton)
+	{
+		PreviousButton->OnClicked.RemoveDynamic(this, &UArenaSelectList::OnPreviousButtonClicked);
+	}
+
+	if (NextButton)
+	{
+		NextButton->OnClicked.RemoveDynamic(this, &UArenaSelectList::OnNextButtonClicked);
+	}
+}
+
 void UArenaSelectList::SetCurrentItem(int32 Index)
 {
 	if (Index >= 0 && Index < Items.Num())

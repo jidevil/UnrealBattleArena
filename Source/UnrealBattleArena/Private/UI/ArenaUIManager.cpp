@@ -4,14 +4,17 @@
 #include "UI/ArenaUIManager.h"
 #include "UI/ArenaScreen.h"
 
-UArenaDialog* UArenaUIManager::ShowDialog(EDialogType DialogType, FDialogOnButtonClickDelegate OnButtonClickDelegate,
-                                          TSubclassOf<UArenaDialog> DialogClass)
+UArenaUIManager::UArenaUIManager()
+{
+}
+
+UArenaDialog* UArenaUIManager::CreateDialog(EDialogType DialogType, FDialogOnButtonClickDelegate OnButtonClickDelegate,
+                                            TSubclassOf<UArenaDialog> DialogClass)
 {
 	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
 	if (PlayerController)
 	{
-		UArenaDialog* Dialog = Cast<UArenaDialog>(CreateWidget(PlayerController, DialogClass ?
-			DialogClass : DefaultDialogClass));
+		UArenaDialog* Dialog = Cast<UArenaDialog>(CreateWidget(PlayerController, DefaultDialogClass));
 
 		if (Dialog)
 		{
@@ -22,13 +25,10 @@ UArenaDialog* UArenaUIManager::ShowDialog(EDialogType DialogType, FDialogOnButto
 					OnButtonClickDelegate.Execute(ButtonType);
 				}
 
-				Dialog->RemoveFromViewport();
-				Dialog->Destruct();
+				Dialog->Close();
 			});
 
 			Dialog->SetType(DialogType);
-			Dialog->AddToViewport();
-
 			return Dialog;
 		}
 	}
@@ -36,8 +36,10 @@ UArenaDialog* UArenaUIManager::ShowDialog(EDialogType DialogType, FDialogOnButto
 	return nullptr;
 }
 
-void UArenaUIManager::PushScreen(TSubclassOf<UArenaScreen> ScreenClass)
+class UArenaScreen*  UArenaUIManager::PushScreen(TSubclassOf<UArenaScreen> ScreenClass)
 {
+	UArenaScreen* Screen{ nullptr };
+	
 	if (HasScreen(ScreenClass))
 	{
 		PopToFront(ScreenClass);
@@ -47,7 +49,7 @@ void UArenaUIManager::PushScreen(TSubclassOf<UArenaScreen> ScreenClass)
 		APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
 		if (PlayerController)
 		{
-			UArenaScreen* Screen = Cast<UArenaScreen>(CreateWidget(PlayerController, ScreenClass));
+			Screen = Cast<UArenaScreen>(CreateWidget(PlayerController, ScreenClass));
 			if (Screen)
 			{
 				if (Screens.Num() > 0)
@@ -55,26 +57,33 @@ void UArenaUIManager::PushScreen(TSubclassOf<UArenaScreen> ScreenClass)
 					Screens.Top()->RemoveFromViewport();
 				}
 
-				Screen->AddToViewport();
+				Screen->AddToViewport();				
 				Screens.Push(Screen);
 			}
 		}
 	}
+
+	return Screen;
 }
 
-void UArenaUIManager::PopScreen()
+class UArenaScreen* UArenaUIManager::PopScreen()
 {
+	UArenaScreen* Screen{ nullptr };
+	
 	if (Screens.Num() > 0)
 	{
+		Screen = Screens.Top();	
 		Screens.Top()->RemoveFromViewport();
-		Screens.Top()->Destruct();
 		Screens.RemoveAt(Screens.Num() - 1);
 
-		if (Screens.Num() > 0)
+		UArenaScreen* TopScreen = Screens.Num() > 0 ? Screens.Top() : nullptr;
+		if (TopScreen)
 		{
-			Screens.Top()->AddToViewport();
+			TopScreen->AddToViewport();
 		}
 	}
+
+	return Screen;
 }
 
 void UArenaUIManager::PushToBack(TSubclassOf<UArenaScreen> ScreenClass)

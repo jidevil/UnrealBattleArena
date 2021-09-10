@@ -22,7 +22,8 @@ UArenaSessionSubsystem::UArenaSessionSubsystem()
 		&UArenaSessionSubsystem::OnJoinSessionCompleted);
 }
 
-void UArenaSessionSubsystem::CreateSession(int32 NumPublicConnections, bool bIsLANMatch, const FString& MapName)
+void UArenaSessionSubsystem::CreateSession(int32 NumPublicConnections, bool bIsLANMatch,
+	const TMap<FName, FString>& Settings)
 {
 	const IOnlineSessionPtr SessionInterface = Online::GetSessionInterface(GetWorld());
 	if (!SessionInterface.IsValid())
@@ -42,7 +43,12 @@ void UArenaSessionSubsystem::CreateSession(int32 NumPublicConnections, bool bIsL
 	LastSessionSettings->bUsesPresence = true;
 	LastSessionSettings->bIsLANMatch = bIsLANMatch;
 	LastSessionSettings->bShouldAdvertise = true;
-	LastSessionSettings->Set(SETTING_MAPNAME, MapName, EOnlineDataAdvertisementType::ViaOnlineService);
+
+	for (const TPair<FName, FString>& SettingPair : Settings)
+	{
+		LastSessionSettings->Set(SettingPair.Key, SettingPair.Value,
+			EOnlineDataAdvertisementType::ViaOnlineService);		
+	}
 
 	OnCreateSessionCompleteDelegateHandle = SessionInterface->AddOnCreateSessionCompleteDelegate_Handle(
 		OnCreateSessionCompleteDelegate);
@@ -56,7 +62,7 @@ void UArenaSessionSubsystem::CreateSession(int32 NumPublicConnections, bool bIsL
 	}
 }
 
-void UArenaSessionSubsystem::UpdateSession(const FString& MapName)
+void UArenaSessionSubsystem::UpdateSession(const TMap<FName, FString>& Settings)
 {
 	const IOnlineSessionPtr SessionInterface = Online::GetSessionInterface(GetWorld());
 	if (!SessionInterface.IsValid())
@@ -68,7 +74,12 @@ void UArenaSessionSubsystem::UpdateSession(const FString& MapName)
 	const TSharedPtr<FOnlineSessionSettings> UpdatedSessionSettings = MakeShareable(
 		new FOnlineSessionSettings(*LastSessionSettings));
 
-	UpdatedSessionSettings->Set(SETTING_MAPNAME, MapName, EOnlineDataAdvertisementType::ViaOnlineService);
+	for (const TPair<FName, FString>& SettingPair : Settings)
+	{
+		UpdatedSessionSettings->Set(SettingPair.Key, SettingPair.Value,
+			EOnlineDataAdvertisementType::ViaOnlineService);		
+	}
+
 	OnUpdateSessionCompleteDelegateHandle = SessionInterface->AddOnUpdateSessionCompleteDelegate_Handle(
 		OnUpdateSessionCompleteDelegate);
 
@@ -269,7 +280,7 @@ void UArenaSessionSubsystem::OnJoinSessionCompleted(FName SessionName, EOnJoinSe
 	JoinSessionCompleteDelegate.Broadcast(Result);
 }
 
-bool UArenaSessionSubsystem::TryTravelToCurrentSession() const
+bool UArenaSessionSubsystem::TravelToCurrentSession() const
 {
 	const IOnlineSessionPtr SessionInterface = Online::GetSessionInterface(GetWorld());
 	if (!SessionInterface.IsValid())
@@ -290,5 +301,14 @@ bool UArenaSessionSubsystem::TryTravelToCurrentSession() const
 	}
 
 	PlayerController->ClientTravel(ConnectString, TRAVEL_Absolute);
+	return true;
+}
+
+bool UArenaSessionSubsystem::GetServerTravelURL(FString& TravelURL) const
+{
+	FString MapName;
+	LastSessionSettings->Get(SETTING_MAPNAME, MapName);
+	TravelURL = FString::Printf(TEXT("/Game/UnrealBattleArena/Maps/%s?listen"), *MapName);
+	
 	return true;
 }

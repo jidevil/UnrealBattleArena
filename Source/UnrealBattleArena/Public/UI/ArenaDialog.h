@@ -9,6 +9,7 @@
 UENUM(BlueprintType)
 enum class EDialogType : uint8
 {
+	Empty UMETA(DisplayName="Empty"),
 	OkOnly UMETA(DisplayName="OkOnly"),
 	YesNo UMETA(DisplayName="YesNo"),
 	YesNoCancel UMETA(DisplayName="YesNoCancel")
@@ -33,11 +34,15 @@ class UNREALBATTLEARENA_API UArenaDialog : public UUserWidget
 public:
 
 	void SetType(EDialogType InDialogType);
-	void SetText(EDialogButtonType ButtonType, const FText& Text);
+	void SetContentText(const FText& Content);
+	void SetButtonText(EDialogButtonType ButtonType, const FText& Text);
+	void Show();
+	void Close();
 
 protected:
 
 	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 
 	UFUNCTION()
 	void OnYesClicked();
@@ -65,6 +70,9 @@ protected:
 	
 	UPROPERTY(meta=(BindWidget))
 	class UTextBlock* CancelButtonText{ nullptr };
+
+	UPROPERTY(meta=(BindWidget))
+	class UHorizontalBox* ButtonBox{ nullptr };
 
 	UPROPERTY(meta=(BindWidget))
 	class UButton* YesButton{ nullptr };

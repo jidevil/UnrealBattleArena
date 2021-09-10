@@ -3,9 +3,14 @@
 
 #include "UI/Screens/CreateGame/ArenaCreateGame.h"
 #include "UI/Widgets/ArenaSelectList.h"
+#include "UI/ArenaUIManager.h"
 #include "Online/ArenaSessionSubsystem.h"
-#include "Components/Button.h"
 #include "Kismet/GameplayStatics.h"
+#include "Misc/ArenaFunctionLibrary.h"
+#include "Player/ArenaPlayerController.h"
+#include "Components/Button.h"
+#include "Components/EditableTextBox.h"
+#include "OnlineSessionSettings.h"
 
 void UArenaCreateGame::NativeConstruct()
 {
@@ -13,18 +18,36 @@ void UArenaCreateGame::NativeConstruct()
 
 	if (MapNameSelectList)
 	{
-		MapNameSelectList->AddItem(FText::FromString("Map_Level01"), "Map_Level01");
-		MapNameSelectList->SetCurrentItem(0);
+		const TArray<FString> Maps =
+		{
+			"Map_Level01"
+		};
+		
+		for (const FString& Map : Maps)
+		{
+			MapNameSelectList->AddItem(FText::FromString(Map), Map);
+		}
+
+		if (Maps.Num() > 0)
+		{
+			MapNameSelectList->SetCurrentItem(0);
+		}
 	}
 
 	if (PlayersSelectList)
 	{
-		PlayersSelectList->AddItem(FText::FromString("1"), "1");
-		PlayersSelectList->AddItem(FText::FromString("2"), "2");
-		PlayersSelectList->AddItem(FText::FromString("3"), "3");
-		PlayersSelectList->AddItem(FText::FromString("4"), "4");
-		PlayersSelectList->AddItem(FText::FromString("5"), "5");
-		PlayersSelectList->SetCurrentItem(0);
+		constexpr int32 MaxPlayers = 5;
+		
+		for (int32 Index = 1; Index <= MaxPlayers; Index++)
+		{
+			PlayersSelectList->AddItem(FText::AsNumber(Index),
+				FString::FromInt(Index));
+		}
+
+		if (MaxPlayers > 0)
+		{
+			PlayersSelectList->SetCurrentItem(0);
+		}
 	}
 
 	if (CreateButton)
@@ -36,50 +59,98 @@ void UArenaCreateGame::NativeConstruct()
 	{
 		CancelButton->OnClicked.AddDynamic(this, &UArenaCreateGame::OnCancelButtonClicked);
 	}
+
+	if (BackButton)
+	{
+		BackButton->OnClicked.AddDynamic(this, &UArenaCreateGame::OnBackButtonClicked);
+	}
+}
+
+void UArenaCreateGame::NativeDestruct()
+{
+	Super::NativeDestruct();
+
+	if (CreateButton)
+	{
+		CreateButton->OnClicked.RemoveDynamic(this, &UArenaCreateGame::OnCreateButtonClicked);
+	}
+
+	if (CancelButton)
+	{
+		CancelButton->OnClicked.RemoveDynamic(this, &UArenaCreateGame::OnCancelButtonClicked);
+	}
+
+	if (BackButton)
+	{
+		BackButton->OnClicked.RemoveDynamic(this, &UArenaCreateGame::OnBackButtonClicked);
+	}
+}
+
+FString UArenaCreateGame::GetOptionsString()
+{
+	const FSelectItem& PlayersItem = PlayersSelectList->GetSelectedItem();
+	const FSelectItem& MapItem = MapNameSelectList->GetSelectedItem();
+	
+	const FString Options = FString::Printf(TEXT("%s?GameName=%s?MapName=%s?PlayerName=%s?TotalPlayers=%s"),
+		TEXT("listen"),	*GameNameEditText->Text.ToString(), *MapItem.Value,
+		TEXT("ArenaPlayer"), *PlayersItem.Value);
+
+	return Options;
 }
 
 void UArenaCreateGame::OnCreateSessionCompleted(bool bSuccessful)
 {
-	UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(GetWorld());
-	if (GameInstance)
+	UArenaSessionSubsystem* SessionSubsystem = UArenaFunctionLibrary::GetSessionSubsystem(GetWorld());
+	if (SessionSubsystem)
 	{
-		UArenaSessionSubsystem* SessionSubsystem = GameInstance->GetSubsystem<UArenaSessionSubsystem>();
-		if (SessionSubsystem)
-		{
-			SessionSubsystem->CreateSessionCompleteDelegate.RemoveDynamic(this,
-				&UArenaCreateGame::OnCreateSessionCompleted);
-		}
-	}
+		SessionSubsystem->CreateSessionCompleteDelegate.RemoveDynamic(this,
+			&UArenaCreateGame::OnCreateSessionCompleted);
 
-	if (bSuccessful)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("New session created successfully"));
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Error creating session"));
+		AArenaPlayerController* PlayerController = UArenaFunctionLibrary::GetPlayerController(GetWorld());
+		if (PlayerController)
+		{
+			const FName LobbyLevel{ "Map_Lobby" };
+			UGameplayStatics::OpenLevel(GetWorld(), LobbyLevel, true, GetOptionsString());
+		}
 	}
 }
 
 void UArenaCreateGame::OnCreateButtonClicked()
 {
-	UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(GetWorld());
-	if (GameInstance)
+	UArenaSessionSubsystem* SessionSubsystem = UArenaFunctionLibrary::GetSessionSubsystem(GetWorld());
+	if (SessionSubsystem)
 	{
-		UArenaSessionSubsystem* SessionSubsystem = GameInstance->GetSubsystem<UArenaSessionSubsystem>();
-		if (SessionSubsystem)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Creating new game session"));
-			SessionSubsystem->CreateSessionCompleteDelegate.AddDynamic(this,
-				&UArenaCreateGame::OnCreateSessionCompleted);
-			
-			const FSelectItem& SelectedMapItem = MapNameSelectList->GetSelectedItem();
-			SessionSubsystem->CreateSession(10, false,
-				SelectedMapItem.Value);
-		}
+		SessionSubsystem->CreateSessionCompleteDelegate.AddDynamic(this,
+			&UArenaCreateGame::OnCreateSessionCompleted);
+		
+		const FSelectItem& SelectedMapItem = MapNameSelectList->GetSelectedItem();
+		const FSelectItem& SelectedPlayers = PlayersSelectList->GetSelectedItem();
+		
+		TMap<FName, FString> Settings;
+		Settings.Add(SETTING_GAMENAME, GameNameEditText->GetText().ToString());
+		Settings.Add(SETTING_CREATEDBY, "PlayerName");
+		Settings.Add(SETTING_PLAYERNAME, "PlayerName");
+		Settings.Add(SETTING_MAPNAME, SelectedMapItem.Value);
+		Settings.Add(SETTING_TOTALPLAYERS, SelectedPlayers.Value);
+		
+		SessionSubsystem->CreateSession(NumPublicConnections, bIsLANMatch, Settings);
 	}
 }
 
 void UArenaCreateGame::OnCancelButtonClicked()
 {
+	UArenaUIManager* UIManager = UArenaFunctionLibrary::GetUIManager(GetWorld());
+	if (UIManager)
+	{
+		UIManager->PopScreen();
+	}
+}
+
+void UArenaCreateGame::OnBackButtonClicked()
+{
+	UArenaUIManager* UIManager = UArenaFunctionLibrary::GetUIManager(GetWorld());
+	if (UIManager)
+	{
+		UIManager->PopScreen();
+	}
 }

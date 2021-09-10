@@ -3,39 +3,54 @@
 
 #include "UI/ArenaDialog.h"
 #include "Components/Button.h"
+#include "Components/HorizontalBox.h"
 #include "Components/TextBlock.h"
 
 void UArenaDialog::SetType(EDialogType InDialogType)
 {
 	switch (InDialogType)
 	{
+	case EDialogType::Empty:
+		{
+			if (ButtonBox)
+			{
+				ButtonBox->RemoveFromParent();
+			}
+			break;
+		}
 	case EDialogType::OkOnly:
 		{
-			YesButton->SetVisibility(ESlateVisibility::Visible);
-			NoButton->SetVisibility(ESlateVisibility::Hidden);
-			CancelButton->SetVisibility(ESlateVisibility::Hidden);
+			if (ButtonBox)
+			{
+				ButtonBox->RemoveChild(NoButton);
+				ButtonBox->RemoveChild(CancelButton);
+			}
 			break;
 		}
 
 	case EDialogType::YesNo:
 		{
-			YesButton->SetVisibility(ESlateVisibility::Visible);
-			NoButton->SetVisibility(ESlateVisibility::Visible);
-			CancelButton->SetVisibility(ESlateVisibility::Hidden);
+			if (ButtonBox)
+			{
+				ButtonBox->RemoveChild(CancelButton);
+			}
 			break;
 		}
 
 	case EDialogType::YesNoCancel:
-		{
-			YesButton->SetVisibility(ESlateVisibility::Visible);
-			NoButton->SetVisibility(ESlateVisibility::Visible);
-			CancelButton->SetVisibility(ESlateVisibility::Visible);
-			break;
-		}
+		break;
 	}
 }
 
-void UArenaDialog::SetText(EDialogButtonType ButtonType, const FText& Text)
+void UArenaDialog::SetContentText(const FText& Content)
+{
+	if (ContentText)
+	{
+		ContentText->SetText(Content);
+	}
+}
+
+void UArenaDialog::SetButtonText(EDialogButtonType ButtonType, const FText& Text)
 {
 	switch (ButtonType)
 	{
@@ -59,13 +74,62 @@ void UArenaDialog::SetText(EDialogButtonType ButtonType, const FText& Text)
 	}
 }
 
+void UArenaDialog::Show()
+{
+	if (!IsInViewport())
+	{
+		AddToViewport();
+	}
+}
+
+void UArenaDialog::Close()
+{
+	if (IsInViewport())
+	{
+		RemoveFromViewport();
+	}
+
+	Destruct();
+}
+
 void UArenaDialog::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	YesButton->OnClicked.AddDynamic(this, &UArenaDialog::OnYesClicked);
-	NoButton->OnClicked.AddDynamic(this, &UArenaDialog::OnNoClicked);
-	CancelButton->OnClicked.AddDynamic(this, &UArenaDialog::OnCancelClicked);
+	if (YesButton)
+	{
+		YesButton->OnClicked.AddDynamic(this, &UArenaDialog::OnYesClicked);
+	}
+
+	if (NoButton)
+	{
+		NoButton->OnClicked.AddDynamic(this, &UArenaDialog::OnNoClicked);
+	}
+
+	if (CancelButton)
+	{
+		CancelButton->OnClicked.AddDynamic(this, &UArenaDialog::OnCancelClicked);
+	}
+}
+
+void UArenaDialog::NativeDestruct()
+{
+	Super::NativeDestruct();
+
+	if (YesButton)
+	{
+		YesButton->OnClicked.RemoveDynamic(this, &UArenaDialog::OnYesClicked);
+	}
+
+	if (NoButton)
+	{
+		NoButton->OnClicked.RemoveDynamic(this, &UArenaDialog::OnNoClicked);
+	}
+
+	if (CancelButton)
+	{
+		CancelButton->OnClicked.RemoveDynamic(this, &UArenaDialog::OnCancelClicked);
+	}
 }
 
 void UArenaDialog::OnYesClicked()

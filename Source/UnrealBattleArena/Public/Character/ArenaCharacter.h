@@ -89,10 +89,9 @@ public:
 	void AddSpeedMultiplier(float InSpeedMultiplier);
 
 	void ToggleView();
-	void SetCameraFOV(float FOV);
 	void UpdateSpeed();
-	void Die();
-	
+
+	virtual void Die();
 	virtual bool IsFirstPersonView() const;
 	virtual void GetAimLocationAndRotation(FVector& AimLocation, FVector& AimRotation) const;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;

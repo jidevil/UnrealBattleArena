@@ -11,11 +11,10 @@ class UNREALBATTLEARENA_API UArenaMainMenu : public UArenaScreen
 {
 	GENERATED_BODY()
 
-public:
-
 protected:
 
 	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 
 	UFUNCTION()
 	virtual void OnMenuItemClicked(const FName& MenuType);
@@ -27,7 +26,7 @@ protected:
 protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Arena Main Menu")
-	TSubclassOf<class UArenaCreateGame> CreateGameClass;
+	TSubclassOf<class UArenaPlayGame> PlayGameClass;
 
 	UPROPERTY(meta=(BindWidget))
 	class UVerticalBox* MenuVerticalBox{ nullptr };

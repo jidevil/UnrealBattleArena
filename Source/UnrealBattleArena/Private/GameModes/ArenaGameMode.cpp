@@ -7,9 +7,9 @@
 #include "Player/ArenaPlayerState.h"
 #include "Bot/ArenaBotController.h"
 #include "Components/CapsuleComponent.h"
-#include "Online/ArenaPlayerStart.h"
+#include "Misc/ArenaPlayerStart.h"
 #include "EngineUtils.h"
-#include "Online/ArenaSpectatorPawn.h"
+#include "Misc/ArenaSpectatorPawn.h"
 #include "Player/ArenaPlayerCharacter.h"
 
 AArenaGameMode::AArenaGameMode()
@@ -133,6 +133,11 @@ AActor* AArenaGameMode::ChoosePlayerStart_Implementation(AController* Player)
 	}
 	
 	return Super::ChoosePlayerStart_Implementation(Player);
+}
+
+void AArenaGameMode::BeginPlay()
+{
+	Super::BeginPlay();
 }
 
 bool AArenaGameMode::IsSpawnPointAllowed(APlayerStart* PlayerStart, AController* Controller) const

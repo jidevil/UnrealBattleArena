@@ -2,8 +2,14 @@
 
 
 #include "GameModes/ArenaCoopGameMode.h"
+#include "Online/ArenaCoopGameState.h"
 #include "WaveSystem/ArenaWaveSystem.h"
 #include "Kismet/GameplayStatics.h"
+
+AArenaCoopGameMode::AArenaCoopGameMode()
+{
+	GameStateClass = AArenaCoopGameState::StaticClass();
+}
 
 int32 AArenaCoopGameMode::ChooseTeam(AArenaPlayerState* PlayerState)
 {

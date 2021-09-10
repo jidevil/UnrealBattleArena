@@ -13,6 +13,7 @@
 #include "UnrealBattleArena.h"
 #include "GameModes/ArenaGameMode.h"
 #include "Kismet/GameplayStatics.h"
+#include "Misc/ArenaFunctionLibrary.h"
 #include "Player/ArenaPlayerController.h"
 #include "Player/ArenaPlayerState.h"
 #include "UI/HUD/ArenaHUD.h"
@@ -119,7 +120,7 @@ bool AArenaCharacter::IsEnemyFor(AController* OtherController) const
 	AArenaPlayerState* ThisPlayerState = Cast<AArenaPlayerState>(Controller->PlayerState);
 	AArenaPlayerState* OtherPlayerState = Cast<AArenaPlayerState>(OtherController->PlayerState);
 
-	AArenaGameMode* GameMode = Cast<AArenaGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+	AArenaGameMode* GameMode = Cast<AArenaGameMode>(UArenaFunctionLibrary::GetGameMode(GetWorld()));
 	if (GameMode)
 	{
 		bEnemy = GameMode->CanDealDamage(OtherPlayerState, ThisPlayerState);
@@ -343,29 +344,9 @@ void AArenaCharacter::ToggleView()
 	}
 }
 
-void AArenaCharacter::SetCameraFOV(float FOV)
-{
-	TargetFOV = FOV;
-	bChangeFOV = true;
-}
-
 void AArenaCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	ToggleView();
-	
-	if (GetLocalRole() < ROLE_Authority && IsLocallyControlled())
-	{
-		AArenaPlayerController* PlayerController = Cast<AArenaPlayerController>(GetController());
-		if (PlayerController)
-		{
-			UArenaHUD* PlayerHUD = PlayerController->GetPlayerHUD();
-			if (PlayerHUD)
-			{
-				PlayerWidget = PlayerHUD->GetPlayerWidget();
-			}
-		}
-	}
 
 	if (GetLocalRole() == ROLE_Authority)
 	{
@@ -373,6 +354,7 @@ void AArenaCharacter::BeginPlay()
 		CurrentShield = Attributes.MaxShield;
 	}
 
+	ToggleView();
 	SpawnDefaultInventory();
 	UpdateHealthHUD();
 	UpdateShieldHUD();
@@ -547,7 +529,20 @@ void AArenaCharacter::DestroyInventory()
 }
 
 void AArenaCharacter::UpdateHealthHUD()
-{	
+{
+	if (!PlayerWidget)
+	{
+		const AArenaPlayerController* PlayerController = Cast<AArenaPlayerController>(GetController());
+		if (PlayerController && PlayerController->IsLocalPlayerController())
+		{
+			UArenaHUD* PlayerHUD = PlayerController->GetPlayerHUD();
+			if (PlayerHUD)
+			{
+				PlayerWidget = PlayerHUD->GetPlayerWidget();
+			}
+		}
+	}
+	
 	if (PlayerWidget)
 	{
 		PlayerWidget->SetHealth(CurrentHealth, Attributes.MaxHealth);
@@ -556,6 +551,19 @@ void AArenaCharacter::UpdateHealthHUD()
 
 void AArenaCharacter::UpdateShieldHUD()
 {
+	if (!PlayerWidget)
+	{
+		const AArenaPlayerController* PlayerController = Cast<AArenaPlayerController>(GetController());
+		if (PlayerController && PlayerController->IsLocalPlayerController())
+		{
+			UArenaHUD* PlayerHUD = PlayerController->GetPlayerHUD();
+			if (PlayerHUD)
+			{
+				PlayerWidget = PlayerHUD->GetPlayerWidget();
+			}
+		}
+	}
+	
 	if (PlayerWidget)
 	{
 		PlayerWidget->SetShield(CurrentShield, Attributes.MaxShield);

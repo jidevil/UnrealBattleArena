@@ -16,6 +16,16 @@ AArenaBotCharacter::AArenaBotCharacter()
 	FloatingHealth->SetupAttachment(RootComponent);
 }
 
+void AArenaBotCharacter::Die()
+{
+	if (HealthWidget)
+	{
+		HealthWidget->SetVisibility(ESlateVisibility::Hidden);
+	}
+	
+	Super::Die();
+}
+
 bool AArenaBotCharacter::IsFirstPersonView() const
 {
 	return false;

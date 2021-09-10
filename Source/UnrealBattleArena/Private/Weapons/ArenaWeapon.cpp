@@ -288,7 +288,6 @@ void AArenaWeapon::BeginIronsights()
 {
 	if (GetLocalRole() < ROLE_Authority && ArenaCharacter->IsLocallyControlled())
 	{
-		ArenaCharacter->SetCameraFOV(Attributes.IronsightsFOV);
 		ServerBeginIronsights();
 	}
 	
@@ -300,7 +299,6 @@ void AArenaWeapon::EndIronsights()
 {
 	if (GetLocalRole() < ROLE_Authority && ArenaCharacter->IsLocallyControlled())
 	{
-		ArenaCharacter->SetCameraFOV(CHARACTER_DEFAULT_FOV);
 		ServerEndIronsights();
 	}
 	
@@ -319,21 +317,6 @@ void AArenaWeapon::EndIronsights()
 void AArenaWeapon::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if (GetLocalRole() < ROLE_Authority)
-	{
-		AArenaPlayerController* PlayerController = Cast<AArenaPlayerController>(
-			GetWorld()->GetFirstPlayerController());
-
-		if (PlayerController)
-		{
-			UArenaHUD* PlayerHUD = PlayerController->GetPlayerHUD();
-			if (PlayerHUD)
-			{
-				WeaponWidget = PlayerHUD->GetWeaponWidget();
-			}
-		}
-	}
 
 	if (GetLocalRole() == ROLE_Authority)
 	{
@@ -633,6 +616,19 @@ FHitResult AArenaWeapon::WeaponTrace(const FVector& TraceStart, const FVector& T
 
 void AArenaWeapon::UpdateAmmoHUD()
 {
+	if (!WeaponWidget)
+	{
+		AArenaPlayerController* PlayerController = Cast<AArenaPlayerController>(ArenaCharacter->GetController());
+		if (PlayerController && PlayerController->IsLocalPlayerController())
+		{
+			UArenaHUD* PlayerHUD = PlayerController->GetPlayerHUD();
+			if (PlayerHUD)
+			{
+				WeaponWidget = PlayerHUD->GetWeaponWidget();
+			}
+		}
+	}
+	
 	if (WeaponWidget)
 	{
 		WeaponWidget->SetAmmo(CurrentAmmoInClip, RemainingAmmo);

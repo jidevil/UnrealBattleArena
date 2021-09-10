@@ -7,7 +7,7 @@
 #include "Bot/ArenaBotController.h"
 #include "GameModes/ArenaGameMode.h"
 #include "Kismet/GameplayStatics.h"
-#include "Online/ArenaPlayerStart.h"
+#include "Misc/ArenaPlayerStart.h"
 
 void AArenaWaveSystem::StartWaves()
 {

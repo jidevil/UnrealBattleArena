@@ -2,12 +2,15 @@
 
 
 #include "GameModes/ArenaGameModeBase.h"
-#include "UI/ArenaUIManager.h"
+#include "Online/ArenaGameState.h"
+#include "Kismet/GameplayStatics.h"
+
+AArenaGameModeBase::AArenaGameModeBase()
+{
+	GameStateClass = AArenaGameState::StaticClass();
+}
 
 void AArenaGameModeBase::BeginPlay()
 {
 	Super::BeginPlay();
-
-	UIManager = NewObject<UArenaUIManager>(this);
-	UIManager->RegisterComponent();
 }

@@ -28,6 +28,7 @@ public:
 
 protected:
 
+	virtual void BeginPlay() override;
 	virtual bool IsSpawnPointAllowed(class APlayerStart* PlayerStart, class AController* Controller) const;
 	virtual bool IsSpawnPointPreferred(class APlayerStart* PlayerStart, class AController* Controller) const;
 	virtual float GetRespawnTime(AController* Controller);

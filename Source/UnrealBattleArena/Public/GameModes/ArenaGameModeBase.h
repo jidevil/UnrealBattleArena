@@ -13,17 +13,9 @@ class UNREALBATTLEARENA_API AArenaGameModeBase : public AGameModeBase
 
 public:
 
-	FORCEINLINE class UArenaUIManager* GetUIManager() const { return UIManager; }
+	AArenaGameModeBase();
 
 protected:
 
 	virtual void BeginPlay() override;
-
-protected:
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Arena GameMode Base")
-	TSubclassOf<class UArenaUIManager> UIManagerClass;
-
-	UPROPERTY(Transient)
-	class UArenaUIManager* UIManager{ nullptr };
 };

@@ -6,6 +6,8 @@
 #include "UI/ArenaScreen.h"
 #include "ArenaChooseGame.generated.h"
 
+
+
 UCLASS()
 class UNREALBATTLEARENA_API UArenaChooseGame : public UArenaScreen
 {
@@ -14,6 +16,8 @@ class UNREALBATTLEARENA_API UArenaChooseGame : public UArenaScreen
 protected:
 
 	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
+	
 	void OnFindSessionsCompleted(const TArray<FOnlineSessionSearchResult>& SessionResults, bool bSuccessful);
 	
 	UFUNCTION()
@@ -21,11 +25,17 @@ protected:
 
 	UFUNCTION()
 	void OnRefreshButtonClicked();
+
+	UFUNCTION()
+	void OnBackButtonClicked();
 		
 protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Arena Choose Game")
-	TSubclassOf<class UArenaGameItem> GameItemClass;
+	TSubclassOf<class UArenaChooseGameItem> GameItemClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Arena Choose Game")
+	TSubclassOf<class UArenaCreateGame> CreateGameClass;
 
 	UPROPERTY(meta=(BindWidget))
 	class UVerticalBox* GameItemListBox{ nullptr };
@@ -35,4 +45,7 @@ protected:
 
 	UPROPERTY(meta=(BindWidget))
 	class UButton* RefreshButton{ nullptr };
+
+	UPROPERTY(meta=(BindWidget))
+	class UButton* BackButton{ nullptr };
 };

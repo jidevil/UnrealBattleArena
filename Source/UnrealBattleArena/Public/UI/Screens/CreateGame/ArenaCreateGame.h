@@ -14,7 +14,10 @@ class UNREALBATTLEARENA_API UArenaCreateGame : public UArenaScreen
 protected:
 
 	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 
+	FString GetOptionsString();
+	
 	UFUNCTION()
 	void OnCreateSessionCompleted(bool bSuccessful);
 
@@ -23,6 +26,9 @@ protected:
 
 	UFUNCTION()
 	void OnCancelButtonClicked();
+
+	UFUNCTION()
+	void OnBackButtonClicked();
 
 protected:
 
@@ -40,4 +46,10 @@ protected:
 
 	UPROPERTY(meta=(BindWidget))
 	class UButton* CancelButton{ nullptr };
+
+	UPROPERTY(meta=(BindWidget))
+	class UButton* BackButton{ nullptr };
+
+	int32 NumPublicConnections{ 10 };
+	bool bIsLANMatch{ false };
 };

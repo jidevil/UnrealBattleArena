@@ -3,11 +3,29 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/GameState.h"
+#include "ArenaOnlineMatch.h"
+#include "GameFramework/GameStateBase.h"
+#include "GameFramework/OnlineReplStructs.h"
 #include "ArenaGameState.generated.h"
 
 UCLASS()
-class UNREALBATTLEARENA_API AArenaGameState : public AGameState
+class UNREALBATTLEARENA_API AArenaGameState : public AGameStateBase
 {
 	GENERATED_BODY()
+
+public:
+
+	FORCEINLINE class UArenaOnlineMatch* GetOnlineMatch() const { return OnlineMatch; }
+
+	void CreateMatch(const FString& GameName, const FString& MapName, int32 TotalPlayers);
+	void JoinMatch(const FString& PlayerName, bool bMatchOwner = false);
+
+protected:
+
+	virtual void BeginPlay() override;
+
+protected:
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Arena Game State")
+	class UArenaOnlineMatch* OnlineMatch{ nullptr };
 };

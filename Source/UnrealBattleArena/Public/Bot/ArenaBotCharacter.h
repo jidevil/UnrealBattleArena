@@ -17,13 +17,13 @@ public:
 
 	FORCEINLINE class UAIPerceptionComponent* GetAIPerception() const { return AIPerception; }
 
+	virtual void Die() override;
 	virtual bool IsFirstPersonView() const override;
 	virtual void FaceRotation(FRotator NewControlRotation, float DeltaTime) override;
 
 protected:
 
 	virtual void BeginPlay() override;
-
 	virtual void OnRep_CurrentHealth() override;
 	virtual void OnRep_CurrentShield() override;
 

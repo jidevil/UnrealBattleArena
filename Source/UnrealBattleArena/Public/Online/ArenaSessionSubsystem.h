@@ -7,6 +7,12 @@
 #include "Interfaces/OnlineSessionInterface.h"
 #include "ArenaSessionSubsystem.generated.h"
 
+#define SETTING_GAMENAME FName(TEXT("GAMENAME"))
+#define SETTING_PLAYERNAME FName(TEXT("PLAYERNAME"))
+#define SETTING_CREATEDBY FName(TEXT("CREATEDBY"))
+#define SETTING_TOTALPLAYERS FName(TEXT("TOTALPLAYERS"))
+#define SETTING_JOINEDPLAYERS FName(TEXT("JOINEDPLAYERS"))
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCreateSessionCompleteDelegate, bool, bSuccessful);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FUpdateSessionCompleteDelegate, bool, bSuccessful);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FStartSessionCompleteDelegate, bool, bSuccessful);
@@ -27,13 +33,15 @@ public:
 
 	UArenaSessionSubsystem();
 
-	void CreateSession(int32 NumPublicConnections, bool bIsLANMatch, const FString& MapName);
-	void UpdateSession(const FString& MapName);
+	void CreateSession(int32 NumPublicConnections, bool bIsLANMatch, const TMap<FName, FString>& Settings);
+	void UpdateSession(const TMap<FName, FString>& Settings);
 	void StartSession();
 	void EndSession();
 	void DestroySession();
 	void FindSessions(int32 MaxSearchResults, bool bIsLANQuery);
 	void JoinGameSession(const FOnlineSessionSearchResult& SessionResult);
+	bool TravelToCurrentSession() const;
+	bool GetServerTravelURL(FString& TravelURL) const;
 
 public:
 
@@ -54,7 +62,6 @@ protected:
 	void OnDestroySessionCompleted(FName SessionName, bool bSuccessful);
 	void OnFindSessionsCompleted(bool bSuccessful);
 	void OnJoinSessionCompleted(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
-	bool TryTravelToCurrentSession() const;
 
 protected:
 

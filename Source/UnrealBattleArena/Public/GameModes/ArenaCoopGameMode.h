@@ -13,6 +13,7 @@ class UNREALBATTLEARENA_API AArenaCoopGameMode : public AArenaGameMode
 
 public:
 
+	AArenaCoopGameMode();
 	virtual int32 ChooseTeam(AArenaPlayerState* PlayerState) override;
 
 protected:

@@ -21,3 +21,11 @@
 #define SURFACE_TYPE_HEAD SurfaceType3
 #define SURFACE_TYPE_BODY SurfaceType4
 #define SURFACE_TYPE_FOOT SurfaceType5
+
+UENUM(BlueprintType)
+enum class EGameType : uint8
+{
+	Coop UMETA(DisplayName="Coop"),
+	Versus UMETA(DisplayName="Versus"),
+	TeamDeathmatch UMETA(DisplayName="TeamDeathmatch")
+};

@@ -28,6 +28,16 @@ void UArenaMenuItem::NativeConstruct()
 	}
 }
 
+void UArenaMenuItem::NativeDestruct()
+{
+	Super::NativeDestruct();
+
+	if (MenuButton)
+	{
+		MenuButton->OnClicked.RemoveDynamic(this, &UArenaMenuItem::OnMenuItemClicked);
+	}
+}
+
 void UArenaMenuItem::OnMenuItemClicked()
 {
 	if (OnMenuItemClick.IsBound())

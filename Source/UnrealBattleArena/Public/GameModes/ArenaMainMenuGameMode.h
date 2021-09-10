@@ -18,9 +18,4 @@ public:
 protected:
 
 	virtual void BeginPlay() override;
-
-protected:
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Arena Main Menu GameMode")
-	TSubclassOf<class UArenaMainMenu> MainMenuClass;
 };

@@ -12,17 +12,19 @@ class UNREALBATTLEARENA_API UArenaUIManager : public UActorComponent
 {
 	GENERATED_BODY()
 
-public:	
+public:
+
+	UArenaUIManager();
 
 	UFUNCTION(BlueprintCallable)
-	UArenaDialog* ShowDialog(EDialogType DialogType, FDialogOnButtonClickDelegate OnButtonClickDelegate,
+	UArenaDialog* CreateDialog(EDialogType DialogType, FDialogOnButtonClickDelegate OnButtonClickDelegate,
 		TSubclassOf<UArenaDialog> DialogClass = nullptr);
 
 	UFUNCTION(BlueprintCallable)
-	void PushScreen(TSubclassOf<class UArenaScreen> ScreenClass);
+	class UArenaScreen* PushScreen(TSubclassOf<class UArenaScreen> ScreenClass);
 
 	UFUNCTION(BlueprintCallable)
-	void PopScreen();
+	class UArenaScreen* PopScreen();
 
 	UFUNCTION(BlueprintCallable)
 	void PushToBack(TSubclassOf<class UArenaScreen> ScreenClass);
